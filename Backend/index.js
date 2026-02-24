@@ -1,33 +1,40 @@
+// api/index.js
 import express from "express";
+import serverless from "serverless-http";
 import dotenv from "dotenv";
 import cors from "cors";
-import AuthRoute from "./Routes/AuthRoutes.js";
-import DbConnection from "./Database/DbConnection.js";
-import productRoute from "./Routes/ProductRoutes.js";
-import cartRoute from "./Routes/CartRoutes.js";
-import orderRoute from "./Routes/OrderRoutes.js";
-import paymentRoute from "./Routes/PaymentRoutes.js";
 
-const app = express();
+// Routes
+import AuthRoute from "../Routes/AuthRoutes.js";
+import ProductRoute from "../Routes/ProductRoutes.js";
+import CartRoute from "../Routes/CartRoutes.js";
+import OrderRoute from "../Routes/OrderRoutes.js";
+import PaymentRoute from "../Routes/PaymentRoutes.js";
+
+// Database
+import DbConnection from "../Database/DbConnection.js";
 
 dotenv.config();
+const app = express();
+
+// Middleware
 app.use(express.json());
 app.use(cors());
 
+// Routes
 app.use("/api/auth", AuthRoute);
-app.use("/api/products", productRoute);
-app.use("/api/cart", cartRoute);
-app.use("/api/order", orderRoute);
-app.use("/api/payment", paymentRoute);
+app.use("/api/products", ProductRoute);
+app.use("/api/cart", CartRoute);
+app.use("/api/order", OrderRoute);
+app.use("/api/payment", PaymentRoute);
 
-const PORT = process.env.PORT;
+// Test route
+app.get("/", (req, res) => {
+  res.status(200).json({ success: true, message: "Backend is running on Vercel!" });
+});
 
-app.get("/", (req, res)=>{
-    res.status(200).send({success: 200, message: "Welcome to Backend"})
-})
-
+// Connect to DB
 DbConnection();
 
-app.listen(PORT, ()=>{
-    console.log("Backend is Running on: ", PORT);
-})
+// Export as serverless function
+export default serverless(app);
