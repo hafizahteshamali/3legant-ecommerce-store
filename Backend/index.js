@@ -25,7 +25,7 @@ app.use("/api/cart", cartRoute);
 app.use("/api/order", orderRoute);
 app.use("/api/payment", paymentRoute);
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8000;
 
 app.get("/", (req, res)=>{
     res.status(200).send({success: 200, message: "Welcome to Backend"})
@@ -33,6 +33,10 @@ app.get("/", (req, res)=>{
 
 DbConnection();
 
-app.listen(PORT, ()=>{
-    console.log("Backend is Running on: ", PORT);
-})
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, ()=>{
+        console.log("Backend is Running on: ", PORT);
+    })
+}
+
+export default app;
