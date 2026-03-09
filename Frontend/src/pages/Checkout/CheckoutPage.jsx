@@ -35,10 +35,8 @@ const CheckoutPage = () => {
     mode: "onChange", // Validate on change for real-time feedback
   });
 
-  // Watch payment method for conditional rendering
   const paymentMethod = watch("paymentMethod");
 
-  // Calculate totals from cart data
   const cartData = cart?.items?.map((cartItem) => {
     const productData = product?.products?.find((p) => p._id === cartItem.product);
     return { ...productData, quantity: cartItem.quantity, cartItemId: cartItem._id };

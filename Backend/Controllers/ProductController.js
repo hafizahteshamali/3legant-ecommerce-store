@@ -13,6 +13,22 @@ const addProductController = async (req, res) => {
             public_id: img.filename
         })) || [];
 
+        let parsedTags = [];
+        if (tags) {
+            try {
+                parsedTags = JSON.parse(tags);
+            } catch (error) {
+                parsedTags = [];
+            }
+        }
+
+        let parsedRatings = { average: 0, count: 0 }
+        if (ratings) {
+            parsedRatings = JSON.parse(ratings);
+        } else {
+            parsedRatings = { average: 0, count: 0 }
+        }
+
         const product = await productModel.create({
             name,
             slug: slug,
@@ -21,10 +37,10 @@ const addProductController = async (req, res) => {
             discountedPrice,
             category,
             stock,
-            ratings: ratings,
+            ratings: parsedRatings,
             images: images,
             isFeatured: isFeatured || false,
-            tags: tags ? tags.split(",") : [],
+            tags: parsedTags,
             status: status || "active"
         })
 
@@ -38,7 +54,7 @@ const addProductController = async (req, res) => {
 const getAllProductController = async (_, res) => {
     try {
         const products = await productModel.find();
-        return res.status(200).send({success: true, products});
+        return res.status(200).send({ success: true, products });
     } catch (error) {
         return res.status(400).send({ success: false, message: error.message });
     }
@@ -46,52 +62,52 @@ const getAllProductController = async (_, res) => {
 
 const filterProductController = async (req, res) => {
     try {
-      const { category, sort, page = 1, limit=10, isFeatured } = req.query;
-  
-      // 🔹 Filter Object
-      let filter = {};
+        const { category, sort, page = 1, limit = 10, isFeatured } = req.query;
 
-      if (category == "All") {
-        filter.category = category;
-      }
-  
-      if (category) {
-        filter.category = category;
-      }
+        // 🔹 Filter Object
+        let filter = {};
 
-      if (isFeatured) {
-        filter.isFeatured = isFeatured;
-      }
+        if (category == "All") {
+            filter.category = category;
+        }
 
-      const skip = ((page - 1) * limit);
+        if (category) {
+            filter.category = category;
+        }
 
-      let sortOption = {};
-  
-      if (sort === "price_asc") {
-        sortOption.price = 1;   // Low to High
-      }
-  
-      if (sort === "price_desc") {
-        sortOption.price = -1;  // High to Low
-      }
-  
-      const products = await productModel.find(filter).sort(sortOption).skip(skip).limit(Number(limit));
+        if (isFeatured) {
+            filter.isFeatured = isFeatured;
+        }
 
-      const total = await productModel.countDocuments(filter);
-  
-      res.status(200).send({
-        success: true,
-        total: total,
-        page: page, 
-        pages: Math.ceil(total / limit),
-        products
-      });
-  
+        const skip = ((page - 1) * limit);
+
+        let sortOption = {};
+
+        if (sort === "price_asc") {
+            sortOption.price = 1;   // Low to High
+        }
+
+        if (sort === "price_desc") {
+            sortOption.price = -1;  // High to Low
+        }
+
+        const products = await productModel.find(filter).sort(sortOption).skip(skip).limit(Number(limit));
+
+        const total = await productModel.countDocuments(filter);
+
+        res.status(200).send({
+            success: true,
+            total: total,
+            page: page,
+            pages: Math.ceil(total / limit),
+            products
+        });
+
     } catch (error) {
-      return res.status(500).send({
-        success: false,
-        message: error.message
-      });
+        return res.status(500).send({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -168,7 +184,24 @@ const updateProductController = async (req, res) => {
             }
         ))
 
+        let parsedTags = [];
+        if (tags) {
+            try {
+                parsedTags = JSON.parse(tags);
+            } catch (error) {
+                parsedTags = [];
+            }
+        }
+
+        let parsedRatings = { average: 0, count: 0 };
+        if (ratings) {
+            parsedRatings = JSON.parse(ratings);
+        } else {
+            parsedRatings = { average: 0, count: 0 };
+        }
+
         product.name = name || product.name;
+        product.slug = slug || product.slug;
         product.description = description || product.description;
         product.price = price || product.price;
         product.discountedPrice = discountedPrice || product.discountedPrice;
@@ -176,7 +209,8 @@ const updateProductController = async (req, res) => {
         product.stock = stock || product.stock;
         product.images = newImages || product.images;
         product.isFeatured = isFeatured !== undefined ? isFeatured : product.isFeatured;
-        product.tags = tags ? tags.split(",") : product.tags;
+        product.tags = parsedTags || product.tags;
+        product.ratings = parsedRatings || product.ratings;
         product.status = status || product.status;
 
         await product.save();
